@@ -50,7 +50,7 @@ let handler = |ev, _, _, _, _, _| {
 let hook = win_event_hook::WinEventHook::install(config, handler)?;
 ```
 
-When `hook` is [dropped](https://doc.rust-lang.org/std/ops/trait.Drop.html), an uninstall is attempted automatically. Uninstallation may fail - to handle failures, instead call [`uninstall`](#TODO) yourself, for example:
+When `hook` is [dropped](https://doc.rust-lang.org/std/ops/trait.Drop.html), an uninstall is attempted automatically. Uninstallation may fail - to handle failures, instead call [`uninstall`](https://docs.rs/win_event_hook/latest/win_event_hook/struct.WinEventHook.html#method.uninstall) yourself, for example:
 
 ```rust
 // building on the above example
