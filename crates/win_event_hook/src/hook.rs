@@ -31,7 +31,7 @@ pub trait WinEventHookInner: Sync + Send {
 pub struct UnthreadedInner {
     handle: Option<HWINEVENTHOOK>,
     _config: Config,
-    _handler: Arc<(Box<dyn EventHandler>, Option<Vec<Event>>)>,
+    _handler: Arc<EventData>,
 }
 
 impl UnthreadedInner {
@@ -196,9 +196,12 @@ impl Drop for ThreadedInner {
 /// This represents the primitive inner type of [`HWINEVENTHOOK`].
 type EventHookId = isize;
 
+/// This represents the content of the [`Weak`] within [`INSTALLED_HOOKS`].
+type EventData = (Box<dyn EventHandler>, Option<Vec<Event>>);
+
 lazy_static! {
     /// Storage for hooks that need to be invoked by `__on_win_event_hook_event`.
-    static ref INSTALLED_HOOKS: RwLock<HashMap<EventHookId, Weak<(Box<dyn EventHandler>, Option<Vec<Event>>)>>> =
+    static ref INSTALLED_HOOKS: RwLock<HashMap<EventHookId, Weak<EventData>>> =
         RwLock::new(HashMap::new());
 }
 
@@ -213,13 +216,12 @@ extern "system" fn __on_win_event_hook_event(
     event_time: u32,
 ) {
     // A failure here indicates a library bug! Please open an issue on GitHub!
-    let event =
-        Event::try_from(event).expect(&format!("Unable to identify event with value: '{}'", event));
+    let event = Event::try_from(event)
+        .unwrap_or_else(|_| panic!("Unable to identify event with value: '{}'", event));
     let hooks = INSTALLED_HOOKS.read().expect("Unable to obtain read lock");
-    let event_data = hooks.get(&event_hook.0).expect(&format!(
-        "Unable to obtain hook with id: '{}'",
-        event_hook.0
-    ));
+    let event_data = hooks
+        .get(&event_hook.0)
+        .unwrap_or_else(|| panic!("Unable to obtain hook with id: '{}'", event_hook.0));
 
     debug!(
         ?event_hook,

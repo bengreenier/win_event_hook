@@ -344,7 +344,7 @@ impl AiaEvent {
     /// [Accessibility Interoperability Alliance](https://learn.microsoft.com/en-us/windows/win32/winauto/allocation-of-winevent-ids#community-reserved-events)
     /// reserved range.
     pub fn is_within_range(value: u32) -> bool {
-        value >= AiaEvent::MIN && value <= AiaEvent::MAX
+        (AiaEvent::MIN..AiaEvent::MAX).contains(&value)
     }
 
     /// Determines if the instance contains a valid value.
@@ -371,13 +371,13 @@ impl TryFrom<u32> for AiaEvent {
 
 impl From<AiaEvent> for u32 {
     fn from(value: AiaEvent) -> Self {
-        return value.0;
+        value.0
     }
 }
 
 impl From<&AiaEvent> for u32 {
     fn from(value: &AiaEvent) -> Self {
-        return value.0;
+        value.0
     }
 }
 
@@ -398,7 +398,7 @@ impl OemEvent {
     /// [OEM](https://learn.microsoft.com/en-us/windows/win32/winauto/allocation-of-winevent-ids#oem-reserved-events)
     /// reserved range.
     pub fn is_within_range(value: u32) -> bool {
-        value >= OemEvent::MIN && value <= OemEvent::MAX
+        (OemEvent::MIN..OemEvent::MAX).contains(&value)
     }
 
     /// Determines if the instance contains a valid value.
@@ -425,13 +425,13 @@ impl TryFrom<u32> for OemEvent {
 
 impl From<OemEvent> for u32 {
     fn from(value: OemEvent) -> Self {
-        return value.0;
+        value.0
     }
 }
 
 impl From<&OemEvent> for u32 {
     fn from(value: &OemEvent) -> Self {
-        return value.0;
+        value.0
     }
 }
 
@@ -452,7 +452,7 @@ impl UiaEvent {
     /// [UI Automation](https://learn.microsoft.com/en-us/windows/win32/winauto/allocation-of-winevent-ids#microsoft-active-accessibility-and-ui-automation-events)
     /// event reserved range.
     pub fn is_within_range(value: u32) -> bool {
-        value >= UiaEvent::MIN && value <= UiaEvent::MAX
+        (UiaEvent::MIN..UiaEvent::MAX).contains(&value)
     }
 
     /// Determines if the instance contains a valid value.
@@ -479,13 +479,13 @@ impl TryFrom<u32> for UiaEvent {
 
 impl From<UiaEvent> for u32 {
     fn from(value: UiaEvent) -> Self {
-        return value.0;
+        value.0
     }
 }
 
 impl From<&UiaEvent> for u32 {
     fn from(value: &UiaEvent) -> Self {
-        return value.0;
+        value.0
     }
 }
 
@@ -506,7 +506,7 @@ impl UiaPropertyEvent {
     /// [UI Automation](https://learn.microsoft.com/en-us/windows/win32/winauto/allocation-of-winevent-ids#microsoft-active-accessibility-and-ui-automation-events)
     /// property-changed event reserved range.
     pub fn is_within_range(value: u32) -> bool {
-        value >= UiaPropertyEvent::MIN && value <= UiaPropertyEvent::MAX
+        (UiaPropertyEvent::MIN..UiaPropertyEvent::MAX).contains(&value)
     }
 
     /// Determines if the instance contains a valid value.
@@ -533,12 +533,12 @@ impl TryFrom<u32> for UiaPropertyEvent {
 
 impl From<UiaPropertyEvent> for u32 {
     fn from(value: UiaPropertyEvent) -> Self {
-        return value.0;
+        value.0
     }
 }
 
 impl From<&UiaPropertyEvent> for u32 {
     fn from(value: &UiaPropertyEvent) -> Self {
-        return value.0;
+        value.0
     }
 }

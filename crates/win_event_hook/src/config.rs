@@ -128,7 +128,7 @@ impl ConfigBuilder {
                 event_max = id;
             }
 
-            event_filter.push(event.clone());
+            event_filter.push(event);
         }
 
         Self {
