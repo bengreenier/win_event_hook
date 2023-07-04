@@ -28,6 +28,8 @@ win_event_hook = "0.1"
 Then create a configuration and install a hook, for example:
 
 ```rust
+use win_event_hook::events::{Event, NamedEvent};
+
 // create our hook config
 let config = win_event_hook::Config::builder()
     .skip_own_process()
