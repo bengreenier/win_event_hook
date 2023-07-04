@@ -12,6 +12,9 @@ repository = "https://github.com/bengreenier/win_event_hook"
 keywords = ["windows", "api"]
 categories = ["api-bindings", "os", "os::windows-apis"]
 
+[package.metadata.docs.rs]
+targets = ["x86_64-pc-windows-msvc"]
+
 [dependencies]
 bitflags = "2.3.3"
 lazy_static = "1.4.0"
