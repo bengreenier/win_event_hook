@@ -1,8 +1,11 @@
+use std::{fmt::Debug, hash::Hash};
+
 pub use config::Config;
 use errors::{Error, Result};
 pub use handler::EventHandler;
 use hook::{ThreadedInner, UnthreadedInner, WinEventHookInner};
 use tracing::trace;
+use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 
 pub mod config;
 pub mod errors;
@@ -11,6 +14,9 @@ pub mod events;
 pub mod flags;
 pub mod handler;
 mod hook;
+
+/// Re-exported [`HWINEVENTHOOK`].
+pub type OsHandle = HWINEVENTHOOK;
 
 /// A Windows Event Hook, managed using the
 /// [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook)
@@ -22,6 +28,11 @@ pub struct WinEventHook {
 }
 
 impl WinEventHook {
+    /// Obtains a reference to the os-specific handle of the event hook.
+    pub fn os_handle(&self) -> &Option<OsHandle> {
+        self.inner.handle()
+    }
+
     /// Determines if the hook is currently installed.
     pub fn installed(&self) -> bool {
         self.inner.installed()
@@ -50,6 +61,30 @@ impl WinEventHook {
     /// Uninstalls a hook, if it is not currently installed.
     pub fn uninstall(&mut self) -> Result<()> {
         self.inner.uninstall()
+    }
+}
+
+impl Debug for WinEventHook {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WinEventHook")
+            .field("os_handle", self.os_handle())
+            .finish()
+    }
+}
+
+impl PartialEq for WinEventHook {
+    fn eq(&self, other: &Self) -> bool {
+        self.os_handle().eq(other.os_handle())
+    }
+}
+
+impl Eq for WinEventHook {}
+
+impl Hash for WinEventHook {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let maybe_os_handle = self.os_handle().and_then(|handle| Some(handle.0));
+
+        maybe_os_handle.hash(state)
     }
 }
 

@@ -24,6 +24,7 @@ use crate::{
 };
 
 pub trait WinEventHookInner: Sync + Send {
+    fn handle(&self) -> &Option<HWINEVENTHOOK>;
     fn installed(&self) -> bool;
     fn uninstall(&mut self) -> Result<()>;
 }
@@ -73,6 +74,10 @@ impl UnthreadedInner {
 }
 
 impl WinEventHookInner for UnthreadedInner {
+    fn handle(&self) -> &Option<HWINEVENTHOOK> {
+        &self.handle
+    }
+
     fn installed(&self) -> bool {
         self.handle.is_some()
     }
@@ -167,6 +172,10 @@ impl ThreadedInner {
 }
 
 impl WinEventHookInner for ThreadedInner {
+    fn handle(&self) -> &Option<HWINEVENTHOOK> {
+        &self.unthreaded.handle
+    }
+
     fn installed(&self) -> bool {
         self.unthreaded.installed()
     }
