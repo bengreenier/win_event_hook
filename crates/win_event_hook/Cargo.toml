@@ -1,7 +1,7 @@
 [package]
 name = "win_event_hook"
 publish = true
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Ben <ben+crates@bengreenier.com>"]
 description = "A safe rust API for using SetWinEventHook, powered by the windows crate"
