@@ -184,7 +184,7 @@ impl WinEventHookInner for ThreadedInner {
         if self.installed() {
             // stop the event loop
             unsafe { PostThreadMessageW(self.thread_pool_tid, WM_QUIT, WPARAM(0), LPARAM(0)) }
-                .ok()?;
+                .map_err(|_| Error::Uninstallation)?;
 
             // uninstall the event hook, and return the result
             self.thread_pool.install(|| self.unthreaded.uninstall())
