@@ -20,34 +20,38 @@ use crate::{
     errors::{Error, Result},
     event_loop::run_event_loop,
     events::Event,
-    handler::{EventHandler, WindowHandle},
+    handler::EventHandler,
+    handles::{self, OsHandle, WindowHandle},
 };
 
 pub trait WinEventHookInner: Sync + Send {
-    fn handle(&self) -> &Option<HWINEVENTHOOK>;
+    fn handle(&self) -> &Option<OsHandle>;
     fn installed(&self) -> bool;
     fn uninstall(&mut self) -> Result<()>;
 }
 
 pub struct UnthreadedInner {
-    handle: Option<HWINEVENTHOOK>,
+    handle: Option<OsHandle>,
     _config: Config,
     _handler: Arc<EventData>,
 }
 
 impl UnthreadedInner {
     pub fn new(config: Config, handler: Box<dyn EventHandler>) -> Result<Self> {
+        let module_handle = config.module_handle.clone().unwrap_or_default();
         let handle = unsafe {
             SetWinEventHook(
                 config.event_min,
                 config.event_max,
-                config.module_handle.unwrap_or_default(),
+                *module_handle,
                 Some(__on_win_event_hook_event),
                 config.id_process,
                 config.id_thread,
                 config.dw_flags.bits(),
             )
         };
+
+        let handle = OsHandle::from(handle);
 
         trace!(?handle, "installed hook");
 
@@ -60,7 +64,7 @@ impl UnthreadedInner {
                 .write()
                 .expect("Unable to obtain write lock");
 
-            hooks.insert(handle.0, Arc::downgrade(&handler));
+            hooks.insert(handle.clone(), Arc::downgrade(&handler));
         }
 
         trace!("write hook weakref into storage");
@@ -74,7 +78,7 @@ impl UnthreadedInner {
 }
 
 impl WinEventHookInner for UnthreadedInner {
-    fn handle(&self) -> &Option<HWINEVENTHOOK> {
+    fn handle(&self) -> &Option<OsHandle> {
         &self.handle
     }
 
@@ -89,10 +93,10 @@ impl WinEventHookInner for UnthreadedInner {
                 .write()
                 .expect("Unable to obtain write lock");
 
-            let status = unsafe { UnhookWinEvent(handle) };
+            let status = unsafe { UnhookWinEvent(*handle) };
             match status.as_bool() {
                 true => {
-                    hooks.remove(&handle.0);
+                    hooks.remove(&handle);
 
                     trace!(?handle, "uninstalled hook");
 
@@ -172,7 +176,7 @@ impl ThreadedInner {
 }
 
 impl WinEventHookInner for ThreadedInner {
-    fn handle(&self) -> &Option<HWINEVENTHOOK> {
+    fn handle(&self) -> &Option<OsHandle> {
         &self.unthreaded.handle
     }
 
@@ -202,15 +206,12 @@ impl Drop for ThreadedInner {
     }
 }
 
-/// This represents the primitive inner type of [`HWINEVENTHOOK`].
-type EventHookId = isize;
-
 /// This represents the content of the [`Weak`] within [`INSTALLED_HOOKS`].
 type EventData = (Box<dyn EventHandler>, Option<Vec<Event>>);
 
 lazy_static! {
     /// Storage for hooks that need to be invoked by `__on_win_event_hook_event`.
-    static ref INSTALLED_HOOKS: RwLock<HashMap<EventHookId, Weak<EventData>>> =
+    static ref INSTALLED_HOOKS: RwLock<HashMap<OsHandle, Weak<EventData>>> =
         RwLock::new(HashMap::new());
 }
 
@@ -218,19 +219,18 @@ lazy_static! {
 extern "system" fn __on_win_event_hook_event(
     event_hook: HWINEVENTHOOK,
     event: u32,
-    hwnd: WindowHandle,
+    hwnd: handles::builtins::WindowHandle,
     id_object: i32,
     id_child: i32,
     id_event_thread: u32,
     event_time: u32,
 ) {
     // A failure here indicates a library bug! Please open an issue on GitHub!
-    let event = Event::try_from(event)
-        .unwrap_or_else(|_| panic!("Unable to identify event with value: '{}'", event));
+    let event = Event::from(event);
     let hooks = INSTALLED_HOOKS.read().expect("Unable to obtain read lock");
     let event_data = hooks
-        .get(&event_hook.0)
-        .unwrap_or_else(|| panic!("Unable to obtain hook with id: '{}'", event_hook.0));
+        .get(&event_hook.into())
+        .unwrap_or_else(|| panic!("Unable to obtain hook: {:?}", event_hook));
 
     debug!(
         ?event_hook,
@@ -258,7 +258,7 @@ extern "system" fn __on_win_event_hook_event(
                 if event_filter.contains(&event) {
                     event_handler(
                         event,
-                        hwnd,
+                        hwnd.into(),
                         id_object,
                         id_child,
                         id_event_thread,
@@ -270,7 +270,7 @@ extern "system" fn __on_win_event_hook_event(
             None => {
                 event_handler(
                     event,
-                    hwnd,
+                    hwnd.into(),
                     id_object,
                     id_child,
                     id_event_thread,

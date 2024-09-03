@@ -1,10 +1,6 @@
-use windows::Win32::Foundation::HMODULE;
-
 use crate::events::Event;
 use crate::flags::Flags;
-
-/// Re-exported [`windows::Win32::Foundation::HMODULE`].
-pub type ModuleHandle = HMODULE;
+use crate::handles::ModuleHandle;
 
 /// Config for
 /// [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook).
@@ -95,7 +91,7 @@ impl ConfigBuilder {
             event_max = id;
         }
 
-        let mut event_filter = self.inner.event_filter.unwrap_or(Vec::new());
+        let mut event_filter = self.inner.event_filter.unwrap_or_default();
 
         event_filter.push(event);
 
@@ -115,7 +111,7 @@ impl ConfigBuilder {
     pub fn with_events<T: Into<Vec<Event>>>(self, events: T) -> Self {
         let mut event_min = self.inner.event_min;
         let mut event_max = self.inner.event_max;
-        let mut event_filter = self.inner.event_filter.unwrap_or(Vec::new());
+        let mut event_filter = self.inner.event_filter.unwrap_or_default();
 
         for event in events.into() {
             let id: u32 = event.into();
