@@ -3,9 +3,9 @@ use std::{fmt::Debug, hash::Hash};
 pub use config::Config;
 use errors::{Error, Result};
 pub use handler::EventHandler;
+use handles::Handle;
 use hook::{ThreadedInner, UnthreadedInner, WinEventHookInner};
 use tracing::trace;
-use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 
 pub mod config;
 pub mod errors;
@@ -13,10 +13,8 @@ mod event_loop;
 pub mod events;
 pub mod flags;
 pub mod handler;
+pub mod handles;
 mod hook;
-
-/// Re-exported [`HWINEVENTHOOK`].
-pub type OsHandle = HWINEVENTHOOK;
 
 /// A Windows Event Hook, managed using the
 /// [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook)
@@ -29,7 +27,7 @@ pub struct WinEventHook {
 
 impl WinEventHook {
     /// Obtains a reference to the os-specific handle of the event hook.
-    pub fn os_handle(&self) -> &Option<OsHandle> {
+    pub fn os_handle(&self) -> &Option<impl Handle> {
         self.inner.handle()
     }
 
@@ -82,9 +80,7 @@ impl Eq for WinEventHook {}
 
 impl Hash for WinEventHook {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        let maybe_os_handle = self.os_handle().and_then(|handle| Some(handle.0));
-
-        maybe_os_handle.hash(state)
+        self.os_handle().hash(state)
     }
 }
 

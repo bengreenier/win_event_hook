@@ -34,6 +34,7 @@ pub enum Event {
     Oem(OemEvent),
     Uia(UiaEvent),
     UiaProperty(UiaPropertyEvent),
+    Unknown(u32),
 }
 
 impl Event {
@@ -82,6 +83,7 @@ impl From<Event> for u32 {
             Event::Oem(inner) => inner.into(),
             Event::Uia(inner) => inner.into(),
             Event::UiaProperty(inner) => inner.into(),
+            Event::Unknown(value) => value,
         }
     }
 }
@@ -94,31 +96,30 @@ impl From<&Event> for u32 {
             Event::Oem(inner) => inner.into(),
             Event::Uia(inner) => inner.into(),
             Event::UiaProperty(inner) => inner.into(),
+            Event::Unknown(value) => *value,
         }
     }
 }
 
-impl TryFrom<u32> for Event {
-    type Error = crate::errors::Error;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
+impl From<u32> for Event {
+    fn from(value: u32) -> Self {
         if let Ok(event) = UiaPropertyEvent::try_from(value) {
-            return Ok(Event::UiaProperty(event));
+            return Event::UiaProperty(event);
         }
         if let Ok(event) = UiaEvent::try_from(value) {
-            return Ok(Event::Uia(event));
+            return Event::Uia(event);
         }
         if let Ok(event) = OemEvent::try_from(value) {
-            return Ok(Event::Oem(event));
+            return Event::Oem(event);
         }
         if let Ok(event) = AiaEvent::try_from(value) {
-            return Ok(Event::Aia(event));
+            return Event::Aia(event);
         }
         if let Ok(event) = NamedEvent::try_from(value) {
-            return Ok(Event::Named(event));
+            return Event::Named(event);
         }
 
-        Err(crate::errors::Error::InvalidEvent(value))
+        Event::Unknown(value)
     }
 }
 
