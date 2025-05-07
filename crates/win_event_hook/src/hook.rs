@@ -43,7 +43,7 @@ impl UnthreadedInner {
             SetWinEventHook(
                 config.event_min,
                 config.event_max,
-                *module_handle,
+                Some(*module_handle),
                 Some(__on_win_event_hook_event),
                 config.id_process,
                 config.id_thread,
