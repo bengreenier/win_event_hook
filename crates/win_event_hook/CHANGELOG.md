@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/bengreenier/win_event_hook/compare/win_event_hook-v0.4.0...win_event_hook-v0.4.1) - 2025-05-07
+
+### Other
+
+- *(build)* bump dependencies to latest ([#10](https://github.com/bengreenier/win_event_hook/pull/10))
+
 ## [0.1.1](https://github.com/bengreenier/win_event_hook/compare/win_event_hook-v0.1.0...win_event_hook-v0.1.1) - 2023-07-04
 
 ### Fixed
