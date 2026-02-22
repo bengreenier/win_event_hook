@@ -16,18 +16,18 @@ categories = ["api-bindings", "os", "os::windows-apis"]
 targets = ["x86_64-pc-windows-msvc"]
 
 [dependencies]
-bitflags = "2.3"
-lazy_static = "1.4"
-rayon = "1.7"
+bitflags = "2.11"
+lazy_static = "1.5"
+rayon = "1.11"
 thiserror = "2.0"
 tracing = "0.1"
 
 [dev-dependencies]
-tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-test = "0.2"
 
 [target.'cfg(windows)'.dependencies.windows]
-version = "0.61"
+version = "0.62.2"
 features = [
     # SetWinEventHook
     "Win32_Foundation",
